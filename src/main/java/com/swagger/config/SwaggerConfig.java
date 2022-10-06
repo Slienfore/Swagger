@@ -1,9 +1,9 @@
 package com.swagger.config;
 
-import com.swagger.controller.HelloController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -20,12 +20,20 @@ public class SwaggerConfig {
 
     // 配置 Swagger 的 Docket 的 Bean 实例
     @Bean
-    public Docket docket() {
+    public Docket docket(Environment environment) {// 获取项目环境
+        // => 配置 swagger 仅在生产环境中使用
+        // 配置需要使用的 Swagger 环境
+        Profiles profiles = Profiles.of("Development", "Test");
+        // 判断是否处在自己设定的环境当中
+        boolean flag = environment.acceptsProfiles(profiles);
+
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
-                // 是否进行
-                .enable(true)
-                .select()
+                // 配置分组
+                .groupName("分组一")
+                // 是否启用 Swagger => 关闭的时候将不能进行匹配任何请求
+                .enable(flag)
+                .select()// 进行扫描配置
                 // 扫描方式
                 // basePackage => 指定需要扫描的包(basePackage("com.swagger.controller"))
                 // any 扫描当前 web 项目下所有的包
@@ -38,8 +46,14 @@ public class SwaggerConfig {
                 // PathSelectors.any("") => 匹配任何路径
                 // PathSelectors.none("") => 不进行匹配
                 // PathSelectors.regex("") => 使用正则表达式进行匹配
-                .paths(PathSelectors.ant("/Slienfore/**"))
+                .paths(PathSelectors.ant("/*"))
                 .build();// 工厂模式(Factory)进行构造
+    }
+
+    @Bean
+    public Docket docket1() {
+        // 配置分组
+        return new Docket(DocumentationType.SWAGGER_2).groupName("分组二");
     }
 
     // 配置 Swagger 信息
